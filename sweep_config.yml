@@ -1,0 +1,23 @@
+method: bayes
+metric:
+  goal: minimize
+  name: eval/loss
+parameters:
+  batch_size:
+    distribution: int_uniform
+    max: 64
+    min: 8
+  epochs:
+    distribution: int_uniform
+    max: 16
+    min: 4
+  learning_rate:
+    distribution: uniform
+    max: 0.001
+    min: 0
+  model_name:
+    values:
+    - bert-base-cased
+    - nlptown/bert-base-multilingual-uncased-sentiment
+    - distilbert-base-uncased-finetuned-sst-2-english
+program: train.py
