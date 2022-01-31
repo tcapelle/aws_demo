@@ -10,7 +10,6 @@ from transformers import (
 )
 from datasets import load_dataset, Features, ClassLabel, Value, load_metric
 
-
 recall_metric = load_metric("recall")
 f1_metric = load_metric("f1")
 accuracy_metric = load_metric("accuracy")
@@ -19,17 +18,19 @@ precision_metric = load_metric("precision")
 dataset_path = '.'
 
 labels = ["negative", "positive"]
-stock_features = Features({"Text": Value("string"), "labels": ClassLabel(names=labels)})
-dataset = load_dataset(
-    "csv",
-    data_files={
-        "train": os.path.join(dataset_path, "train.csv"),
-        "test": os.path.join(dataset_path, "test.csv"),
-    },
-    delimiter=",",
-    features=stock_features,
-)
 
+def load_data():
+    stock_features = Features({"Text": Value("string"), "labels": ClassLabel(names=labels)})
+    dataset = load_dataset(
+        "csv",
+        data_files={
+            "train": os.path.join(dataset_path, "train.csv"),
+            "test": os.path.join(dataset_path, "test.csv"),
+        },
+        delimiter=",",
+        features=stock_features,
+    )
+    return dataset
 
 def tokenize_data(dataset, model_name="bert-base-cased"):
 
@@ -47,19 +48,11 @@ def compute_metrics(eval_pred, log_preds=True):
     logits, labels = eval_pred
     predictions = np.argmax(logits, axis=-1)
 
-    recall = recall_metric.compute(
-        predictions=predictions, references=labels, average="macro"
-    )["recall"]
-    f1 = f1_metric.compute(predictions=predictions, references=labels, average="macro")[
-        "f1"
-    ]
-    accuracy = accuracy_metric.compute(predictions=predictions, references=labels)[
-        "accuracy"
-    ]
-    precision = precision_metric.compute(
-        predictions=predictions, references=labels, average="macro"
-    )["precision"]
-
+    recall = recall_metric.compute(predictions=predictions, references=labels, average="macro")["recall"]
+    f1 = f1_metric.compute(predictions=predictions, references=labels, average="macro")["f1"]
+    accuracy = accuracy_metric.compute(predictions=predictions, references=labels)["accuracy"]
+    precision = precision_metric.compute(predictions=predictions, references=labels, average="macro")["precision"]
+    
     return {"recall": recall, "f1": f1, "accuracy": accuracy, "precision": precision}
 
 
@@ -101,9 +94,9 @@ def get_trainer(
 def train(train_args=default_training_args, model_name="bert-base-cased"):
 
     model = AutoModelForSequenceClassification.from_pretrained(model_name, num_labels=2)
-
+    dataset = load_data()
     tokenized_datasets, data_collator = tokenize_data(dataset, model_name)
-
+    
     trainer = get_trainer(
         output_dir=f"training_dir",
         model=model,
@@ -125,9 +118,9 @@ def update_args(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--epochs", default=5)
-    parser.add_argument("--learning_rate", default=1e-5)
-    parser.add_argument("--batch_size", default=16)
+    parser.add_argument("--epochs", default=5, help="The number of training epochs")
+    parser.add_argument("--learning_rate", default=1e-5, help="The initial learning rate, uses linear scheduler")
+    parser.add_argument("--batch_size", default=16, help="batch size, 32 fits on a 16GB GPU")
     parser.add_argument( "--model_name", default="bert-base-cased", help="The old mightty bert!")
 
     args = parser.parse_args()
