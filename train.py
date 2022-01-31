@@ -118,10 +118,10 @@ def update_args(args):
 
 def main():
     parser = argparse.ArgumentParser()
-    parser.add_argument("--epochs", default=5, help="The number of training epochs")
-    parser.add_argument("--learning_rate", default=1e-5, help="The initial learning rate, uses linear scheduler")
-    parser.add_argument("--batch_size", default=16, help="batch size, 32 fits on a 16GB GPU")
-    parser.add_argument( "--model_name", default="bert-base-cased", help="The old mightty bert!")
+    parser.add_argument("--epochs", default=5, help="The number of training epochs, default=5")
+    parser.add_argument("--learning_rate", default=1e-5, help="The initial learning rate, uses linear scheduler, default=1e-5")
+    parser.add_argument("--batch_size", default=16, help="batch size, 32 fits on a 16GB GPU, default=16")
+    parser.add_argument( "--model_name", default="bert-base-cased", help="A Huggingface model name compatible with text classification!, default=bert-base-cased")
 
     args = parser.parse_args()
     
